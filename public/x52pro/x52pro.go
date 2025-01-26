@@ -9,19 +9,19 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/kmpm/go-x52pro/internal/do"
+	"github.com/kmpm/go-x52pro/internal/sdk"
 )
 
 type X52Pro struct {
 	pages       map[string]*Page
-	device      *do.DirectOutputDevice
+	device      *sdk.DirectOutputDevice
 	pageCounter int
 	mu          sync.Mutex
 	log         *slog.Logger
 }
 
 func New() (*X52Pro, error) {
-	device, err := do.NewDevice()
+	device, err := sdk.NewDevice()
 	if err != nil {
 		return nil, err
 	}
@@ -44,29 +44,20 @@ func (x *X52Pro) Close() {
 func (x *X52Pro) onPageChange(page int, activated bool) {
 	x.mu.Lock()
 	defer x.mu.Unlock()
-	// x.log.Info("onPageChange", "page", page, "activated", activated)
-	active := make([]string, len(x.pages))
-	i := 0
+	x.log.Debug("onPageChange", "page", page, "activated", activated)
 	for _, p := range x.pages {
 		if p.id == page {
 			p.SetActivation(activated)
-			// break
+			break
 		}
-		if p.active {
-			active[i] = p.name
-		} else {
-			active[i] = "-"
-		}
-		i++
 	}
-	x.log.Info("post onPageChange", "active", active)
 }
 
 // AddPage adds or overwrites a new page to the X52Pro device.
 func (x *X52Pro) AddPage(name string, setActive bool) (*Page, error) {
 	x.mu.Lock()
 	defer x.mu.Unlock()
-	x.log.Info("AddPage", "name", name, "setActive", setActive)
+	x.log.Debug("AddPage", "name", name, "setActive", setActive)
 	x.pageCounter++
 	p, err := newPage(x.device, x.pageCounter, name, setActive)
 	if err != nil {

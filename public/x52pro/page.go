@@ -9,20 +9,20 @@ import (
 	"log/slog"
 	"sync"
 
-	"github.com/kmpm/go-x52pro/internal/do"
+	"github.com/kmpm/go-x52pro/internal/sdk"
 )
 
 type Page struct {
 	id     int
 	name   string
 	lines  [3]string
-	device *do.DirectOutputDevice
+	device *sdk.DirectOutputDevice
 	active bool
 	log    *slog.Logger
 	mu     sync.Mutex
 }
 
-func newPage(d *do.DirectOutputDevice, id int, name string, active bool) (*Page, error) {
+func newPage(d *sdk.DirectOutputDevice, id int, name string, active bool) (*Page, error) {
 
 	p := &Page{
 		device: d,
@@ -70,17 +70,15 @@ func (p *Page) GetLine(line int) string {
 
 func (p *Page) Refresh() {
 	var err error
-	// p.log.Info("Refresh", "active", p.active)
 	if p.active {
-		// err := p.device.AddPage(p.id, p.name, true)
-		// if err != nil {
-		// 	p.log.Warn("Failed to add page", "error", err)
-		// 	return
-		// }
+		err = p.device.AddPage(p.id, p.name, true)
+		if err != nil {
+			p.log.Debug("Failed to add page", "error", err)
+		}
 		for i, text := range p.lines {
 			err = p.device.SetString(p.id, i, text)
 			if err != nil {
-				p.log.Warn("Failed to set string", "line", i, "error", err)
+				p.log.Debug("Failed to set string", "line", i, "error", err)
 			}
 		}
 	}

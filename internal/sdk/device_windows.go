@@ -2,13 +2,12 @@
 //
 // SPDX-License-Identifier: MPL-2.0
 
-package do
+package sdk
 
 import (
 	"fmt"
 	"log/slog"
 
-	"github.com/kmpm/go-x52pro/internal/helper"
 	"golang.org/x/sys/windows"
 )
 
@@ -19,7 +18,6 @@ type DirectOutputDevice struct {
 	wrapper      *DirectOutput
 	log          *slog.Logger
 	pageChange   DevicePageChangeHandler
-	debug        bool
 }
 
 func NewDevice() (dev *DirectOutputDevice, err error) {
@@ -41,7 +39,6 @@ func NewDevice() (dev *DirectOutputDevice, err error) {
 	dev = &DirectOutputDevice{
 		wrapper: wrapper,
 		log:     log,
-		debug:   helper.HasDebug("DirectOutputDevice"),
 	}
 
 	if err = wrapper.RegisterDeviceCallback(dev.onDeviceChange); err != nil {
@@ -63,9 +60,9 @@ func (d *DirectOutputDevice) SetPageChangeHandler(h DevicePageChangeHandler) {
 }
 
 func (d *DirectOutputDevice) onDeviceChange(hDevice uintptr, bAdded bool, pCtxt uintptr) uintptr {
-	if d.debug {
-		d.log.Info("Device change", "hDevice", hDevice, "bAdded", bAdded, "pCtxt", pCtxt)
-	}
+
+	d.log.Debug("Device change", "hDevice", hDevice, "bAdded", bAdded, "pCtxt", pCtxt)
+
 	if !bAdded {
 		d.log.Error("device removal not supported", "hDevice", hDevice)
 		return e_notimpl
@@ -92,17 +89,12 @@ func (d *DirectOutputDevice) onDeviceChange(hDevice uintptr, bAdded bool, pCtxt 
 }
 
 func (d *DirectOutputDevice) onEnumerate(hDevice, pCtxt uintptr) uintptr {
-	if d.debug {
-		d.log.Info("Enumerate", "device", hDevice, "context", pCtxt)
-	}
-
+	d.log.Debug("Enumerate", "device", hDevice, "context", pCtxt)
 	return d.onDeviceChange(hDevice, true, pCtxt)
 }
 
 func (d *DirectOutputDevice) onPageChange(hDevice uintptr, page uint32, bActivated bool, pCtxt uintptr) uintptr {
-	if d.debug {
-		d.log.Info("onPageChange", "hDevice", hDevice, "page", page, "activated", bActivated, "pCtxt", pCtxt)
-	}
+	d.log.Debug("onPageChange", "hDevice", hDevice, "page", page, "activated", bActivated, "pCtxt", pCtxt)
 
 	defer func() {
 		if d.pageChange != nil {
@@ -113,12 +105,12 @@ func (d *DirectOutputDevice) onPageChange(hDevice uintptr, page uint32, bActivat
 }
 
 func (d *DirectOutputDevice) onSoftButtonChange(hDevice uintptr, dwButtons uint32, pCtxt uintptr) uintptr {
-	// d.log.Info("Soft button change", "device", hDevice, "buttons", dwButtons, "context", pCtxt)
+	d.log.Info("Soft button change", "device", hDevice, "buttons", dwButtons, "context", pCtxt)
 	return s_ok
 }
 
 func (d *DirectOutputDevice) AddPage(id int, name string, setActive bool) error {
-	d.log.Info("AddPage", "id", id, "name", name, "setActive", setActive)
+	d.log.Debug("AddPage", "id", id, "name", name, "setActive", setActive)
 	f := uint32(0)
 	if setActive {
 		f = f | flagSetAsActive

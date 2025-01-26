@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MPL-2.0
 //lint:file-ignore ST1003 keep likenes to the original code
 
-package do
+package sdk
 
 import (
 	"errors"
@@ -11,7 +11,6 @@ import (
 	"log/slog"
 	"unsafe"
 
-	"github.com/kmpm/go-x52pro/internal/helper"
 	"golang.org/x/sys/windows"
 )
 
@@ -92,14 +91,12 @@ func asError(r uintptr) error {
 }
 
 type DirectOutput struct {
-	log   *slog.Logger
-	debug bool
+	log *slog.Logger
 }
 
 func New() *DirectOutput {
 	d := &DirectOutput{
-		log:   slog.Default().With("module", "DirectOutput"),
-		debug: helper.HasDebug("DirectOutput"),
+		log: slog.Default().With("module", "DirectOutput"),
 	}
 	return d
 }
@@ -113,9 +110,7 @@ func (d *DirectOutput) Initialize(appName string) error {
 
 func (d *DirectOutput) Deinitialize() error {
 	r, _, _ := procDirectOutput_Deinitialize.Call()
-	if d.debug {
-		d.log.Info("Deinitialize", "r", r)
-	}
+	d.log.Debug("Deinitialize", "r", r)
 	if failed(r) {
 		return asError(r)
 	}
@@ -177,9 +172,9 @@ func (d *DirectOutput) AddPage(hDevice uintptr, id uint32, name string, flags ui
 		uintptr(unsafe.Pointer(ptr)),
 		uintptr(flags),
 	)
-	// if d.debug {
-	d.log.Info("AddPage", "r", r, "id", id, "name", name, "flags", flags, "lastErr", lastErr)
-	// }
+
+	d.log.Debug("AddPage", "r", r, "id", id, "name", name, "flags", flags, "lastErr", lastErr)
+
 	if failed(r) {
 		return asError(r)
 	}
@@ -199,7 +194,7 @@ func (d *DirectOutput) SetString(hDevice uintptr, page uint32, line uint32, text
 	)
 
 	if failed(r) {
-		d.log.Warn("SetString failed", "r", r, "lastErr", lastErr, "page", page, "line", line, "text", text, "count", count)
+		d.log.Debug("SetString failed", "r", r, "lastErr", lastErr, "page", page, "line", line, "text", text, "count", count)
 		return asError(r)
 	}
 	return nil
@@ -213,9 +208,9 @@ func (d *DirectOutput) GetDeviceType(hDevice uintptr) (windows.GUID, error) {
 		hDevice,
 		uintptr(unsafe.Pointer(&deviceType)),
 	)
-	if d.debug {
-		d.log.Info("GetDeviceType", "r", r, "deviceType", deviceType, "lastErr", lastErr)
-	}
+
+	d.log.Debug("GetDeviceType", "r", r, "deviceType", deviceType, "lastErr", lastErr)
+
 	if failed(r) {
 		return windows.GUID{}, asError(r)
 	}
