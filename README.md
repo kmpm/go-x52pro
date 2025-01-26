@@ -1,4 +1,4 @@
-# Go module interfacing with X52 Pro Joystincs
+# Go module interfacing with X52 Pro Joystics
 
 Logitech (formerly Saitek) has a series of gaming devices, primarily
 a joystic called X52 Pro.
