@@ -139,7 +139,7 @@ func (d *DirectOutput) Enumerate(fn EnumerateHandler) error {
 type PageChangeHandler func(hDevice uintptr, page uint32, bActivated bool, pCtxt uintptr) uintptr
 
 func (d *DirectOutput) RegisterPageCallback(hDevice uintptr, fn PageChangeHandler) error {
-	r, _, _ := procDirectOutput_RegisterPageCallback.Call(hDevice, windows.NewCallback(fn))
+	r, _, _ := procDirectOutput_RegisterPageCallback.Call(hDevice, windows.NewCallback(fn), 0)
 	if failed(r) {
 		return asError(r)
 	}
@@ -162,9 +162,9 @@ func (d *DirectOutput) AddPage(hDevice uintptr, id uint32, name string, SetActiv
 	}
 	r, _, lastErr := procDirectOutput_AddPage.Call(
 		hDevice,
-		uintptr(unsafe.Pointer(&id)),
+		uintptr(id),
 		uintptr(unsafe.Pointer(wchar_t(name))),
-		uintptr(unsafe.Pointer(&flags)),
+		uintptr(flags),
 	)
 	d.log.Info("AddPage", "r", r, "id", id, "name", name, "SetActive", SetActive, "flags", flags, "lastErr", lastErr)
 	if failed(r) {

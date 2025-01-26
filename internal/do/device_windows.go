@@ -76,7 +76,7 @@ func (d *DirectOutputDevice) onEnumerate(hDevice, pCtxt uintptr) uintptr {
 }
 
 func (d *DirectOutputDevice) onPageChange(hDevice uintptr, dwPage uint32, bActivated bool, pCtxt uintptr) uintptr {
-	d.log.Info("Page change", "device", hDevice, "page", dwPage, "activated", bActivated, "context", pCtxt)
+	d.log.Info("Page change", "hDevice", hDevice, "page", dwPage, "activated", bActivated, "pCtxt", pCtxt)
 	return s_ok
 }
 

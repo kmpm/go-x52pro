@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,28 +15,33 @@ var (
 	x *x52pro.X52Pro
 )
 
-func main() {
+func logging() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+}
 
+func main() {
+	logging()
 	x, err := x52pro.New()
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return
 	}
 	defer x.Close()
-	check := func(err error) {
-		if err != nil {
-			fmt.Println(err)
-			x.Close()
-			os.Exit(1)
-		}
-	}
+	// check := func(err error) {
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 		x.Close()
+	// 		os.Exit(1)
+	// 	}
+	// }
 
 	fmt.Println("Hello, World!")
-	p := x.AddPage("page1", true)
+	x.AddPage("page1", true)
 	time.Sleep(2 * time.Second)
-	check(p.SetLine(0, "p1 l0"))
-	check(p.SetLine(1, "p1 l1"))
-	check(p.SetLine(2, "p1 l2"))
+	// check(p.SetLine(0, "p1 l0"))
+	// check(p.SetLine(1, "p1 l1"))
+	// check(p.SetLine(2, "p1 l2"))
 
 	x.AddPage("page 2", false)
 	// check(p2.SetLine(0, "page 2, line 0"))
