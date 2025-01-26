@@ -48,3 +48,8 @@ identical to MIT, it is included here under contrib/saitek.
 - https://leandrofroes.github.io/posts/An-in-depth-look-at-Golang-Windows-calls/
 - https://go.dev/wiki/WindowsDLLs
 - https://anubissec.github.io/How-To-Call-Windows-APIs-In-Golang/#
+
+
+## License
+Most of the code is Mozilla Public License Version 2.0.
+Please check REUSE.toml and file headers for the exact.
