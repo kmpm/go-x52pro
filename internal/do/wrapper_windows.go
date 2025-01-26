@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"unsafe"
 
+	"github.com/kmpm/go-x52pro/internal/helper"
 	"golang.org/x/sys/windows"
 )
 
@@ -32,11 +33,13 @@ import (
 //
 // )
 const (
-	s_ok             uintptr = 0
-	e_handle         uintptr = 0x80070006
-	e_notimpl        uintptr = 0x80004001
-	e_invalidarg     uintptr = 0x80070057
-	e_pagenotacticve uintptr = 0xFF040001
+	s_ok               uintptr = 0
+	e_handle           uintptr = 0x80070006
+	e_notimpl          uintptr = 0x80004001
+	e_invalidarg       uintptr = 0x80070057
+	e_pagenotacticve   uintptr = 0xFF040001
+	flag_Set_As_Active uint32  = 0x00000001
+	null_context       uintptr = 0
 )
 
 var (
@@ -49,16 +52,17 @@ var (
 	procDirectOutput_RegisterPageCallback      = directOutputDll.NewProc("DirectOutput_RegisterPageCallback")
 	procDirectOuput_RegisterSoftButtonCallback = directOutputDll.NewProc("DirectOutput_RegisterSoftButtonCallback")
 
-	procDirectOutput_AddPage   = directOutputDll.NewProc("DirectOutput_AddPage")
-	procDirectOutput_SetString = directOutputDll.NewProc("DirectOutput_SetString")
+	procDirectOutput_AddPage       = directOutputDll.NewProc("DirectOutput_AddPage")
+	procDirectOutput_SetString     = directOutputDll.NewProc("DirectOutput_SetString")
+	procDirectOutput_GetDeviceType = directOutputDll.NewProc("DirectOutput_GetDeviceType")
 )
 
 func wchar_t(s string) *uint16 {
-	ptr, err := windows.UTF16PtrFromString(s)
-	if err != nil {
+	if ptr, err := windows.UTF16PtrFromString(s); err != nil {
 		panic(err)
+	} else {
+		return ptr
 	}
-	return ptr
 }
 
 func failed(r uintptr) bool {
@@ -83,15 +87,15 @@ func asError(r uintptr) error {
 }
 
 type DirectOutput struct {
-	log *slog.Logger
+	log   *slog.Logger
+	debug bool
 }
 
 func New() *DirectOutput {
-
 	d := &DirectOutput{
-		log: slog.Default().With("module", "DirectOutput"),
+		log:   slog.Default().With("module", "DirectOutput"),
+		debug: helper.HasDebug("DirectOutput"),
 	}
-
 	return d
 }
 func (d *DirectOutput) Initialize(appName string) error {
@@ -104,7 +108,9 @@ func (d *DirectOutput) Initialize(appName string) error {
 
 func (d *DirectOutput) Deinitialize() error {
 	r, _, _ := procDirectOutput_Deinitialize.Call()
-	d.log.Info("Deinitialize", "r", r)
+	if d.debug {
+		d.log.Info("Deinitialize", "r", r)
+	}
 	if failed(r) {
 		return asError(r)
 	}
@@ -129,7 +135,7 @@ func (d *DirectOutput) RegisterDeviceCallback(fn DeviceChangeHandler) error {
 type EnumerateHandler func(hDevice, pCtxt uintptr) uintptr
 
 func (d *DirectOutput) Enumerate(fn EnumerateHandler) error {
-	r, _, _ := procDirectOutput_Enumerate.Call(windows.NewCallback(fn), 0)
+	r, _, _ := procDirectOutput_Enumerate.Call(windows.NewCallback(fn), null_context)
 	if failed(r) {
 		return asError(r)
 	}
@@ -139,7 +145,7 @@ func (d *DirectOutput) Enumerate(fn EnumerateHandler) error {
 type PageChangeHandler func(hDevice uintptr, page uint32, bActivated bool, pCtxt uintptr) uintptr
 
 func (d *DirectOutput) RegisterPageCallback(hDevice uintptr, fn PageChangeHandler) error {
-	r, _, _ := procDirectOutput_RegisterPageCallback.Call(hDevice, windows.NewCallback(fn), 0)
+	r, _, _ := procDirectOutput_RegisterPageCallback.Call(hDevice, windows.NewCallback(fn), null_context)
 	if failed(r) {
 		return asError(r)
 	}
@@ -155,18 +161,20 @@ func (d *DirectOutput) RegisterSoftButtonCallback(hDevice uintptr, fn SoftButton
 	return nil
 }
 
-func (d *DirectOutput) AddPage(hDevice uintptr, id uint32, name string, SetActive bool) error {
-	var flags uint32
-	if SetActive {
-		flags = 1
+func (d *DirectOutput) AddPage(hDevice uintptr, id uint32, name string, flags uint32) error {
+	ptr, err := windows.UTF16PtrFromString(name)
+	if err != nil {
+		return err
 	}
 	r, _, lastErr := procDirectOutput_AddPage.Call(
 		hDevice,
 		uintptr(id),
-		uintptr(unsafe.Pointer(wchar_t(name))),
+		uintptr(unsafe.Pointer(ptr)),
 		uintptr(flags),
 	)
-	d.log.Info("AddPage", "r", r, "id", id, "name", name, "SetActive", SetActive, "flags", flags, "lastErr", lastErr)
+	// if d.debug {
+	d.log.Info("AddPage", "r", r, "id", id, "name", name, "flags", flags, "lastErr", lastErr)
+	// }
 	if failed(r) {
 		return asError(r)
 	}
@@ -175,17 +183,36 @@ func (d *DirectOutput) AddPage(hDevice uintptr, id uint32, name string, SetActiv
 }
 
 func (d *DirectOutput) SetString(hDevice uintptr, page uint32, line uint32, text string) error {
+	ptr, _ := windows.UTF16PtrFromString(text)
 	count := uint32(len(text))
 	r, _, lastErr := procDirectOutput_SetString.Call(
 		hDevice,
-		uintptr(unsafe.Pointer(&page)),
-		uintptr(unsafe.Pointer(&line)),
-		uintptr(unsafe.Pointer(&count)),
-		uintptr(unsafe.Pointer(wchar_t(text))),
+		uintptr(page),
+		uintptr(line),
+		uintptr(count),
+		uintptr(unsafe.Pointer(ptr)),
 	)
-	d.log.Info("SetString", "r", r, "page", page, "line", line, "text", text, "count", count, "lastErr", lastErr)
+
 	if failed(r) {
+		d.log.Warn("SetString failed", "r", r, "lastErr", lastErr, "page", page, "line", line, "text", text, "count", count)
 		return asError(r)
 	}
 	return nil
+}
+
+func (d *DirectOutput) GetDeviceType(hDevice uintptr) (windows.GUID, error) {
+
+	deviceType := windows.GUID{}
+
+	r, _, lastErr := procDirectOutput_GetDeviceType.Call(
+		hDevice,
+		uintptr(unsafe.Pointer(&deviceType)),
+	)
+	if d.debug {
+		d.log.Info("GetDeviceType", "r", r, "deviceType", deviceType, "lastErr", lastErr)
+	}
+	if failed(r) {
+		return windows.GUID{}, asError(r)
+	}
+	return deviceType, nil
 }
