@@ -18,6 +18,9 @@ audit:
 reuse:
 	pipx run reuse lint
 
+lint:
+	golangci-lint run
+
 run:
 	go run ./cmd/mfdcli/
 
