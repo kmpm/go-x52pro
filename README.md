@@ -1,14 +1,11 @@
 # Go module interfacing with X52 Pro Joystics
 
 Logitech (formerly Saitek) has a series of gaming devices, primarily
-a joystic called X52 Pro.
-
-This module can talk to it via the DirectOutput API included
+a joystic called X52 Pro. This module can talk to it via the DirectOutput API included
 in the official driver.
 
 It only works on Windows since it uses the DirectOutput.dll provided
 in the driver installation.
-
 
 Much inspiration comes from [Trade-Dangerous](https://github.com/eyeonus/Trade-Dangerous/blob/release/v1/tradedangerous/mfd/saitek/)
 but I would like something in Go and to be able to use it separatly.
