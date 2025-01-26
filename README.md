@@ -23,6 +23,26 @@ My available time to work on this project will be limited but I will gladly acce
 pull requests that I find reasonable.
 
 
+## Usage
+- Install the driver which can, at time of writing, be found at 
+[logi.com](https://support.logi.com/hc/en-gb/articles/360024838173--Downloads-X52-Professional-Space-Flight-H-O-T-A-S)
+
+The software needs DirectOutput.dll which normally can be found at
+`C:\Program Files\Logitech\DirectOutput\DirectOutput.dll` after
+driver installation.
+
+Then run
+`go run cmd\mfdcli`
+
+
+## Development
+
+Install the driver and you will find documentation and dlls in 
+`C:\Program Files\Logitech\DirectOutput\SDK`.
+Since [DirectOutput.h](contrib/saitek/DirectOutput.h) is under a licens
+identical to MIT, it is included here under contrib/saitek.
+
+
 ## Resources
 - https://github.com/eyeonus/Trade-Dangerous/blob/release/v1/tradedangerous/mfd/saitek/directoutput.py
 - https://leandrofroes.github.io/posts/An-in-depth-look-at-Golang-Windows-calls/
