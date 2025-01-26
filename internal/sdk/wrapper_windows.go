@@ -14,28 +14,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// This package will borrow a lot from https://github.com/eyeonus/Trade-Dangerous/blob/release/v1/tradedangerous/mfd/saitek/directoutput.py
-
-// type (
-//
-//	BOOL          uint32
-//	BOOLEAN       byte
-//	BYTE          byte
-//	DWORD         uint32
-//	DWORD64       uint64
-//	HANDLE        uintptr
-//	HLOCAL        uintptr
-//	LARGE_INTEGER int64
-//	LONG          int32
-//	LPVOID        uintptr
-//	SIZE_T        uintptr
-//	UINT          uint32
-//	ULONG_PTR     uintptr
-//	ULONGLONG     uint64
-//	WORD          uint16
-//	WCHAR_T       uint16 // wchar_t, A 16-bit Unicode character
-//
-// )
 const (
 	s_ok             uintptr = 0
 	e_handle         uintptr = 0x80070006
