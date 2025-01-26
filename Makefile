@@ -1,4 +1,6 @@
 
+checks: tidy audit lint reuse
+
 
 .PHONY: tidy
 tidy:
