@@ -1,0 +1,10 @@
+version = 1
+
+
+
+
+[[annotations]]
+path = ["*.md", "Makefile", ".gitignore", "LICENSE", "go.mod", "go.sum"]
+precedence = "override"
+SPDX-FileCopyrightText = "2025 Peter Magnusson <me@kmpm.se>"
+SPDX-License-Identifier = "CC0-1.0"

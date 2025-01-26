@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Peter Magnusson <me@kmpm.se>
+//
+// SPDX-License-Identifier: MPL-2.0
+
 package helper
 
 import (
