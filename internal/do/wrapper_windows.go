@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2025 Peter Magnusson <me@kmpm.se>
 //
 // SPDX-License-Identifier: MPL-2.0
+//lint:file-ignore ST1003 keep likenes to the original code
 
 package do
 
@@ -37,13 +38,13 @@ import (
 //
 // )
 const (
-	s_ok               uintptr = 0
-	e_handle           uintptr = 0x80070006
-	e_notimpl          uintptr = 0x80004001
-	e_invalidarg       uintptr = 0x80070057
-	e_pagenotacticve   uintptr = 0xFF040001
-	flag_Set_As_Active uint32  = 0x00000001
-	null_context       uintptr = 0
+	s_ok             uintptr = 0
+	e_handle         uintptr = 0x80070006
+	e_notimpl        uintptr = 0x80004001
+	e_invalidarg     uintptr = 0x80070057
+	e_pagenotacticve uintptr = 0xFF040001
+	flagSetAsActive  uint32  = 0x00000001
+	nullContext      uintptr = 0
 )
 
 var (
@@ -61,7 +62,7 @@ var (
 	procDirectOutput_GetDeviceType = directOutputDll.NewProc("DirectOutput_GetDeviceType")
 )
 
-func wchar_t(s string) *uint16 {
+func wcharT(s string) *uint16 {
 	if ptr, err := windows.UTF16PtrFromString(s); err != nil {
 		panic(err)
 	} else {
@@ -103,7 +104,7 @@ func New() *DirectOutput {
 	return d
 }
 func (d *DirectOutput) Initialize(appName string) error {
-	r, _, _ := procDirectOutput_Initialize.Call(uintptr(unsafe.Pointer(wchar_t(appName))))
+	r, _, _ := procDirectOutput_Initialize.Call(uintptr(unsafe.Pointer(wcharT(appName))))
 	if failed(r) {
 		return asError(r)
 	}
@@ -139,7 +140,7 @@ func (d *DirectOutput) RegisterDeviceCallback(fn DeviceChangeHandler) error {
 type EnumerateHandler func(hDevice, pCtxt uintptr) uintptr
 
 func (d *DirectOutput) Enumerate(fn EnumerateHandler) error {
-	r, _, _ := procDirectOutput_Enumerate.Call(windows.NewCallback(fn), null_context)
+	r, _, _ := procDirectOutput_Enumerate.Call(windows.NewCallback(fn), nullContext)
 	if failed(r) {
 		return asError(r)
 	}
@@ -149,7 +150,7 @@ func (d *DirectOutput) Enumerate(fn EnumerateHandler) error {
 type PageChangeHandler func(hDevice uintptr, page uint32, bActivated bool, pCtxt uintptr) uintptr
 
 func (d *DirectOutput) RegisterPageCallback(hDevice uintptr, fn PageChangeHandler) error {
-	r, _, _ := procDirectOutput_RegisterPageCallback.Call(hDevice, windows.NewCallback(fn), null_context)
+	r, _, _ := procDirectOutput_RegisterPageCallback.Call(hDevice, windows.NewCallback(fn), nullContext)
 	if failed(r) {
 		return asError(r)
 	}

@@ -119,7 +119,7 @@ func (d *DirectOutputDevice) AddPage(id int, name string, setActive bool) error 
 	d.log.Info("AddPage", "id", id, "name", name, "setActive", setActive)
 	f := uint32(0)
 	if setActive {
-		f = f | flag_Set_As_Active
+		f = f | flagSetAsActive
 	}
 	return d.wrapper.AddPage(d.deviceHandle, uint32(id), name, f)
 }

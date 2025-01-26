@@ -13,11 +13,11 @@ import (
 )
 
 type X52Pro struct {
-	pages        map[string]*Page
-	device       *do.DirectOutputDevice
-	page_counter int
-	mu           sync.Mutex
-	log          *slog.Logger
+	pages       map[string]*Page
+	device      *do.DirectOutputDevice
+	pageCounter int
+	mu          sync.Mutex
+	log         *slog.Logger
 }
 
 func New() (*X52Pro, error) {
@@ -67,8 +67,8 @@ func (x *X52Pro) AddPage(name string, setActive bool) *Page {
 	x.mu.Lock()
 	defer x.mu.Unlock()
 	x.log.Info("AddPage", "name", name, "setActive", setActive)
-	x.page_counter++
-	p := newPage(x.device, x.page_counter, name, setActive)
+	x.pageCounter++
+	p := newPage(x.device, x.pageCounter, name, setActive)
 	x.pages[name] = p
 	//p.Refresh()
 	return p
