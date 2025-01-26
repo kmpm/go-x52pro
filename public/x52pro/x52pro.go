@@ -63,15 +63,18 @@ func (x *X52Pro) onPageChange(page int, activated bool) {
 }
 
 // AddPage adds or overwrites a new page to the X52Pro device.
-func (x *X52Pro) AddPage(name string, setActive bool) *Page {
+func (x *X52Pro) AddPage(name string, setActive bool) (*Page, error) {
 	x.mu.Lock()
 	defer x.mu.Unlock()
 	x.log.Info("AddPage", "name", name, "setActive", setActive)
 	x.pageCounter++
-	p := newPage(x.device, x.pageCounter, name, setActive)
+	p, err := newPage(x.device, x.pageCounter, name, setActive)
+	if err != nil {
+		return nil, err
+	}
 	x.pages[name] = p
-	//p.Refresh()
-	return p
+	//TODO: possible refresh here
+	return p, nil
 }
 
 func (x *X52Pro) RemovePage(name string) error {

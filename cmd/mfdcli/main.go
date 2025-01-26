@@ -56,13 +56,15 @@ func main() {
 	fmt.Println("Page 1")
 
 	// NOTE: This will NOT call the OnPageChanged callback
-	p := x.AddPage("page1", true)
+	p, err := x.AddPage("page1", true)
+	check(err)
 	check(p.SetLine(0, "p1 l0"))
 	check(p.SetLine(1, "p1 l1"))
 	// check(p.SetLine(2, "p1 l2"))
 
 	fmt.Println("Page 2")
-	p2 := x.AddPage("page2", false)
+	p2, err := x.AddPage("page2", false)
+	check(err)
 	check(p2.SetLine(0, "page 2, line 0"))
 	check(p2.SetLine(1, "page 2, line 1"))
 	check(p2.SetLine(2, "page 2, line 2"))

@@ -28,7 +28,9 @@ func NewDevice() (dev *DirectOutputDevice, err error) {
 	defer func() {
 		if err != nil {
 			log.Warn("Failed to initialize DirectOutputDevice", "error", err)
-			wrapper.Deinitialize()
+			if err = wrapper.Deinitialize(); err != nil {
+				log.Error("Failed to deinitialize DirectOutput", "error", err)
+			}
 		}
 	}()
 
@@ -52,8 +54,8 @@ func NewDevice() (dev *DirectOutputDevice, err error) {
 	return
 }
 
-func (d *DirectOutputDevice) Close() {
-	d.wrapper.Deinitialize()
+func (d *DirectOutputDevice) Close() error {
+	return d.wrapper.Deinitialize()
 }
 
 func (d *DirectOutputDevice) SetPageChangeHandler(h DevicePageChangeHandler) {

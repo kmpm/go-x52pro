@@ -22,7 +22,7 @@ type Page struct {
 	mu     sync.Mutex
 }
 
-func newPage(d *do.DirectOutputDevice, id int, name string, active bool) *Page {
+func newPage(d *do.DirectOutputDevice, id int, name string, active bool) (*Page, error) {
 
 	p := &Page{
 		device: d,
@@ -32,8 +32,11 @@ func newPage(d *do.DirectOutputDevice, id int, name string, active bool) *Page {
 		log:    slog.Default().With("module", "Page", slog.Group("Page", "id", id, "name", name)),
 	}
 	p.log.Info("newPage", "active", active)
-	p.device.AddPage(id, name, active)
-	return p
+	err := p.device.AddPage(id, name, active)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
 }
 func (p *Page) SetActivation(active bool) {
 	p.mu.Lock()
