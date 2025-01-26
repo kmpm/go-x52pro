@@ -14,10 +14,11 @@ import (
 type DevicePageChangeHandler func(page int, activated bool)
 
 type DirectOutputDevice struct {
-	deviceHandle uintptr
-	wrapper      *DirectOutput
-	log          *slog.Logger
-	pageChange   DevicePageChangeHandler
+	deviceHandle   uintptr
+	wrapper        *DirectOutput
+	log            *slog.Logger
+	pageChange     DevicePageChangeHandler
+	currentButtons uint32
 }
 
 func NewDevice() (dev *DirectOutputDevice, err error) {
@@ -105,7 +106,11 @@ func (d *DirectOutputDevice) onPageChange(hDevice uintptr, page uint32, bActivat
 }
 
 func (d *DirectOutputDevice) onSoftButtonChange(hDevice uintptr, dwButtons uint32, pCtxt uintptr) uintptr {
-	d.log.Info("Soft button change", "device", hDevice, "buttons", dwButtons, "context", pCtxt)
+	if d.currentButtons != dwButtons {
+		d.log.Info("Soft button change", "device", hDevice, "buttons", dwButtons, "context", pCtxt)
+		d.currentButtons = dwButtons
+		//TODO: do some kind of debounce here
+	}
 	return s_ok
 }
 

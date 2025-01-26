@@ -133,8 +133,10 @@ func (d *DirectOutput) RegisterPageCallback(hDevice uintptr, fn PageChangeHandle
 type SoftButtonHandler func(hDevice uintptr, dwButtons uint32, pCtxt uintptr) uintptr
 
 func (d *DirectOutput) RegisterSoftButtonCallback(hDevice uintptr, fn SoftButtonHandler) error {
-	if r, _, _ := procDirectOuput_RegisterSoftButtonCallback.Call(hDevice, windows.NewCallback(fn)); failed(r) {
-		return windows.GetLastError()
+	cb := windows.NewCallback(fn)
+	if r, _, lastErr := procDirectOuput_RegisterSoftButtonCallback.Call(hDevice, cb, nullContext); failed(r) {
+		d.log.Warn("RegisterSoftButtonCallback failed", "r", r, "lastErr", lastErr)
+		return asError(r)
 	}
 	return nil
 }
